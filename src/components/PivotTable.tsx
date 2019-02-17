@@ -23,24 +23,20 @@ export interface DisplayDataProps {
     salesOrdersData?: JSONObject;
 };
 
-export const filterByRowDimensions = (rowDimensions: string[]) => {
-    // Make JSON Array of first row dimensions
-
-};
-
 const TitleHeading = ({title, importSalesOrders}: TitleHeadingProps) => {
-    return (<div>
-            <div>
-                {title}
+    return (<div className={`titleHeading`}>
+                <div className={`title`}>
+                    {title}
+                </div>
+            <button className={`importButton`} onClick = {importSalesOrders} > Import Data </button>
             </div>
-            <div>
-                <button
-                    onClick = {importSalesOrders} > Import
-                    Data </button>
-            </div></div>
     );
 };
 
+/*
+    Recursively find all unique dimensions under a previous dimension. Once the last dimension is reached, filter
+    on these dimensions and sum the values.
+ */
 export const buildDataSet = (dimensionObj: JSONObject,
                              previousDimension: number,
                              combinedDimensions: string[],
@@ -57,6 +53,7 @@ export const buildDataSet = (dimensionObj: JSONObject,
             .filter(function(o) {
                 return o[combinedDimensions[previousDimension]] === dimensionObj[combinedDimensions[previousDimension]];
             })
+            .sortBy(combinedDimensions[newDimensionNumber])
             .uniqBy(combinedDimensions[newDimensionNumber])
             .keyBy(combinedDimensions[newDimensionNumber])
             .mapValues((obj) => {
@@ -68,11 +65,14 @@ export const buildDataSet = (dimensionObj: JSONObject,
     }
 };
 
+/*
+    Look to see if an entry has all requested dimensions and then Sum them and round.
+ */
 export const sumMetric = (metric: string,
                           salesOrdersData: JSONObject,
                           combinedDimensions: string[],
                           dimensionObj: JSONObject): any => {
-    return _.chain(salesOrdersData.data as ArrayLike<JSONObject>)
+    let sum:number = _.chain(salesOrdersData.data as ArrayLike<JSONObject>)
         .filter((o) => {
             let parametersMatch = true;
             _.forEach(combinedDimensions, (dim) => {
@@ -83,13 +83,20 @@ export const sumMetric = (metric: string,
             return parametersMatch;
         })
         .sumBy(metric)
+        .round()
         .value();
+
+    return sum;
 };
+
+// const numberWithCommas = (x:number):string => {
+//     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+// }
 
 const DisplayData = ({loading, salesOrdersData}: DisplayDataProps) => {
     if (loading) {
         return (
-            <div>
+            <div className={`loading`}>
                 Loading...
             </div>
         );
@@ -100,13 +107,9 @@ const DisplayData = ({loading, salesOrdersData}: DisplayDataProps) => {
         let metric = 'sales';
         let combinedDimensions = rowDimensions.concat(colDimensions);
 
-        // console.log(salesOrdersData);
-        // console.log(salesOrdersData as JSONObject);
-        // console.log(salesOrdersData.data as JSONArray);
-        // console.log(salesOrdersData.data[0] as JSONObject);
-        // console.log(salesOrdersData.data[0]['category'] as JSONValue);
-
+        // filter data based on row and column dimensions specified in the code
         let filteredData = _.chain(salesOrdersData.data as ArrayLike<JSONObject>)
+            .sortBy(combinedDimensions[0])
             .uniqBy(combinedDimensions[0])
             .keyBy(combinedDimensions[0])
             .mapValues((obj) => {
@@ -115,20 +118,112 @@ const DisplayData = ({loading, salesOrdersData}: DisplayDataProps) => {
                     salesOrdersData, metric);
             })
             .value();
-        console.log("filteredData", filteredData);
 
-        // let test2 = _.chain(salesOrdersData.data as ArrayLike<JSONObject>)
-        //     .uniqBy(rowDimensions[0])
-        //     .map((obj) => {
-        //         return obj.category;
-        //     })
-        //     .value();
-        // console.log("test2", test2);
+        let colDim = _.chain(salesOrdersData.data as ArrayLike<JSONObject>)
+            .sortBy(colDimensions[0])
+            .uniqBy(colDimensions[0])
+            .map(colDimensions[0])
+            .value();
+        let tds: any[] = [];
+        let trs: any[] = [];
 
+        _.forEach(filteredData, (dimension, i) => {
+            tds = [];
+            tds.push(<td className={`firstRowDimension`} rowSpan={_.size(filteredData[i])}>{i}</td>);
+            let isNewRow = false;
+            let dimTotals: JSONObject = {};
+            _.forEach(dimension, (dim2, ind2) => {
+                let totals: number[] = [];
+                if (isNewRow) {
+                    tds = [];
+                }
+                tds.push(<td className={`secondRowDimension`}>{ind2}</td>);
+
+                _.forEach(colDim as ArrayLike<string>, (obj) => {
+                    if (!dim2[obj]) {
+                        tds.push(<td>0</td>);
+                        totals.push(0);
+                    } else {
+                        tds.push(<td>{dim2[obj].toLocaleString()}</td>);
+                        totals.push(dim2[obj]);
+                    }
+                });
+
+                dimTotals[ind2] = totals;
+                trs.push(<tr>{tds}</tr>);
+                isNewRow = true;
+            });
+            let subTotal: any[] = [];
+            subTotal.push(<td className={`subTotal`} colSpan={rowDimensions.length}>{`${i} Total`}</td>);
+
+            for(let j = 0; j < colDim.length; j++) {
+                let colDimTotal: number = 0;
+                _.forEach(dimTotals, (array) => {
+                    if (array) {
+                        colDimTotal += array[j];
+                    }
+                })
+                subTotal.push(<td className={`subTotalValue`}>{colDimTotal.toLocaleString()}</td>);
+            }
+
+            trs.push(<tr>{subTotal}</tr>)
+        });
+
+        let colHeadings: any[] = [];
+        let rowHeadings: any[] = [];
+        let leftValue:number = 0;
+
+        _.forEach(rowDimensions, (obj) => {
+            // If last row heading, add shadow border
+            if (rowDimensions.indexOf(obj) + 1 ===_.size(rowDimensions)) {
+                rowHeadings.push(<td style={{left: `${leftValue}px`}} className={`finalStickyFirstColDimension`}>{_.capitalize(obj)}</td>);
+            } else {
+                rowHeadings.push(<td style={{left: `${leftValue}px`}} className={`leftStickyFirstColDimension`}>{_.capitalize(obj)}</td>);
+                leftValue += 115;
+            }
+        });
+
+        _.forEach(colDim as ArrayLike<string>, (obj) => {
+            colHeadings.push(<td className={`firstColDimension`}>{obj}</td>);
+        });
+
+        // Grand Totals
+        let grandTotals: any[] = [];
+        grandTotals.push(<td className={`grandTotal`} colSpan={rowDimensions.length}>{`Grand Total`}</td>);
+
+        _.forEach(colDim, (obj) => {
+            let colDimGrandTotal: number = _.chain(salesOrdersData.data as ArrayLike<JSONObject>)
+                .filter((o) => {
+                    return obj === o[colDimensions[0]];
+                })
+                .sumBy(metric)
+                .round()
+                .value()
+            grandTotals.push(<td className={`grandTotalValue`}>{colDimGrandTotal.toLocaleString()}</td>);
+        });
 
         return (
             <div>
-                <p>{salesOrdersData.data[0][rowDimensions[0]]}</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th className={`rowHeading`} colSpan={_.size(rowDimensions)}>PRODUCTS</th>
+                            <th className={`colHeading`} colSpan={Math.min(_.size(colDim), 8)}>{_.toUpper(colDimensions[0])}</th>
+                            <th style={{backgroundColor: `rgba(2, 40, 115, 1);`}} colSpan={_.size(colDim) - 8}>{}</th>
+                        </tr>
+                        <tr>
+                            {rowHeadings}
+                            {colHeadings}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {trs}
+                        <tr>
+                            {grandTotals}
+                        </tr>
+                    </tbody>
+
+                </table>
             </div>
         );
     }
