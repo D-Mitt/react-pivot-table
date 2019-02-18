@@ -3,12 +3,14 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 # A Simple Pivot Table
 ## Build and Run
 ### Running App
-- Build by running ```npm install```
+- Build by running ```npm install``` in the base directory
 - Run app with ```npm start```
 - In a browser, navigate to ```http://localhost:3000```
 
 ### Running Tests
 - Run ```npm run test```
+    - press `a` to run all tests
+    - press `q` to quit the test watch
 
 ## Brief Architectural Overview
 - To create this app I utilized the `create-react-app` module from npm.
