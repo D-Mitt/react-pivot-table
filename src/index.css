@@ -155,7 +155,7 @@ table {
   position: -webkit-sticky;
   height: 50px;
   top:0px;
-  left: 230px;
+  left: 25%;
   z-index:0;
   fontSize: 18pt;
   background-color: rgba(2, 40, 115, 1);

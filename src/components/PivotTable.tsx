@@ -31,10 +31,10 @@ export interface DisplayDataProps {
 
 const TitleHeading = ({metric, importSalesOrders}: TitleHeadingProps) => {
     return (<div className={`titleHeading`}>
-                <div className={`title`}>
+                <div className={`title`} id={`title`}>
                     {`${_.toUpper(`SUM ${metric}`)}`}
                 </div>
-            <button className={`importButton`} onClick = {importSalesOrders} > Import Data </button>
+            <button className={`importButton`} onClick = {importSalesOrders} >Import Data</button>
             </div>
     );
 };
@@ -148,7 +148,7 @@ export const displayGrandTotals = (rowDimensions: string[],
             .sumBy(metric)
             .round()
             .value()
-        grandTotals.push(<td className={`subTotalValue`}>{colDimGrandTotal.toLocaleString()}</td>);
+        grandTotals.push(<td className={`grandTotalValue`}>{colDimGrandTotal.toLocaleString()}</td>);
     });
 
     return grandTotals;
@@ -264,34 +264,42 @@ const DisplayData = ({metric, loading, rows, cols, salesOrdersData, toggleMinimi
                 dimensionMinimizedStatus as JSONObject);
 
             if (showRows) {
-                tds.push(<td className={`firstRowDimension`} rowSpan={_.size(filteredData[i] as JSONObject)}>
-                    {button}
-                    {i}
-                </td>);
+                if (rowDimensions.length === 1) {
+                    tds.push(<td className={`secondRowDimension`} rowSpan={_.size(filteredData[i] as JSONObject)}>
+                        {button}
+                        {i}
+                    </td>);
+                } else {
+                    tds.push(<td className={`firstRowDimension`} rowSpan={_.size(filteredData[i] as JSONObject)}>
+                        {button}
+                        {i}
+                    </td>);
 
-                let isNewRow = false;
-                let dimTotals: JSONObject = {};
-                _.forEach(dimension as JSONObject, (dim2, ind2) => {
-                    let totals: number[] = [];
-                    if (isNewRow) {
-                        tds = [];
-                    }
-                    tds.push(<td className={`secondRowDimension`}>{ind2}</td>);
-
-                    _.forEach(colDimValues as ArrayLike<string>, (obj) => {
-                        if (!dim2 || !dim2[obj]) {
-                            tds.push(<td>0</td>);
-                            totals.push(0);
-                        } else {
-                            tds.push(<td>{dim2[obj].toLocaleString()}</td>);
-                            totals.push(dim2[obj]);
+                    // TODO: Recursive function here to deal with more than 2 row dimensions
+                    let isNewRow = false;
+                    let dimTotals: JSONObject = {};
+                    _.forEach(dimension as JSONObject, (dim2, ind2) => {
+                        let totals: number[] = [];
+                        if (isNewRow) {
+                            tds = [];
                         }
-                    });
+                        tds.push(<td className={`secondRowDimension`}>{ind2}</td>);
 
-                    dimTotals[ind2] = totals;
-                    trs.push(<tr>{tds}</tr>);
-                    isNewRow = true;
-                });
+                        _.forEach(colDimValues as ArrayLike<string>, (obj) => {
+                            if (!dim2 || !dim2[obj]) {
+                                tds.push(<td>0</td>);
+                                totals.push(0);
+                            } else {
+                                tds.push(<td>{dim2[obj].toLocaleString()}</td>);
+                                totals.push(dim2[obj]);
+                            }
+                        });
+
+                        dimTotals[ind2] = totals;
+                        trs.push(<tr>{tds}</tr>);
+                        isNewRow = true;
+                    });
+                }
             }
 
             // Add a SubTotal Row

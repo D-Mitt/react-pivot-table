@@ -10,7 +10,7 @@ import configureStore from './store/configureStore';
 const store = configureStore({
     metric: 'sales',
     loading: false,
-    rowDimensions: ['category', 'subCategory'],
+    rowDimensions: ['segment', 'subCategory'],
     colDimensions: ['state'],
     salesOrdersData: {},
     dimensionMinimizedStatus: {}

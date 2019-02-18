@@ -437,7 +437,7 @@ Here is an example:
 ### `moduleA.js`
 
 ```js
-const moduleA = 'Hello';
+const moduleA = PivotTable;
 
 export { moduleA };
 ```
