@@ -107,9 +107,11 @@ export const displaySubTotal = (rowDimensions: string[],
                                 button: any): any[] => {
     let subTotals: any[] = [];
     if (showRows) {
-        subTotals.push(<td className={`subTotal`} colSpan={rowDimensions.length}>{`${rowDimensionValue} Total`}</td>);
+        subTotals.push(<td key={`sub-total-row-heading`}
+                           className={`subTotal`} colSpan={rowDimensions.length}>{`${rowDimensionValue} Total`}</td>);
     } else {
-        subTotals.push(<td className={`subTotal`} colSpan={rowDimensions.length}>
+        subTotals.push(<td key={`sub-total-row-heading`}
+                           className={`subTotal`} colSpan={rowDimensions.length}>
             {button}
             {`${rowDimensionValue} Total`}
             </td>);
@@ -125,7 +127,8 @@ export const displaySubTotal = (rowDimensions: string[],
             .round()
             .value()
 
-        subTotals.push(<td className={`subTotalValue`}>{colDimSubTotal.toLocaleString()}</td>);
+        subTotals.push(<td key={`${obj}-sub-total-row-value`}
+                           className={`subTotalValue`}>{colDimSubTotal.toLocaleString()}</td>);
     });
 
     return subTotals;
@@ -138,7 +141,8 @@ export const displayGrandTotals = (rowDimensions: string[],
                                    metric: string,
                                    salesOrdersData: JSONObject): any[] => {
     let grandTotals: any[] = [];
-    grandTotals.push(<td className={`grandTotal`} colSpan={rowDimensions.length}>{`Grand Total`}</td>);
+    grandTotals.push(<td key={`grand-total-row-heading`}
+                         className={`grandTotal`} colSpan={rowDimensions.length}>{`Grand Total`}</td>);
 
     _.forEach(colDimValues, (obj) => {
         let colDimGrandTotal: number = _.chain(salesOrdersData.data as ArrayLike<JSONObject>)
@@ -148,7 +152,8 @@ export const displayGrandTotals = (rowDimensions: string[],
             .sumBy(metric)
             .round()
             .value()
-        grandTotals.push(<td className={`grandTotalValue`}>{colDimGrandTotal.toLocaleString()}</td>);
+        grandTotals.push(<td key={`${obj}-grand-total-row-value`}
+                             className={`grandTotalValue`}>{colDimGrandTotal.toLocaleString()}</td>);
     });
 
     return grandTotals;
@@ -162,9 +167,13 @@ export const getRowHeadings = (rowDimensions: string[], cellSize: number[]): any
     _.forEach(rowDimensions, (obj) => {
         // If last row heading, add shadow border
         if (rowDimensions.indexOf(obj) + 1 ===_.size(rowDimensions)) {
-            rowHeadings.push(<td style={{left: `${leftValue}px`}} className={`finalStickyFirstColDimension`}>{_.capitalize(obj)}</td>);
+            rowHeadings.push(<td key={`${obj}-row-heading`}
+                                 style={{left: `${leftValue}px`}}
+                                 className={`finalStickyFirstColDimension`}>{_.capitalize(obj)}</td>);
         } else {
-            rowHeadings.push(<td style={{left: `${leftValue}px`}} className={`leftStickyFirstColDimension`}>{_.capitalize(obj)}</td>);
+            rowHeadings.push(<td key={`${obj}-row-heading`}
+                                 style={{left: `${leftValue}px`}}
+                                 className={`leftStickyFirstColDimension`}>{_.capitalize(obj)}</td>);
             leftValue += cellSize[count];
         }
         count++;
@@ -176,7 +185,7 @@ export const getRowHeadings = (rowDimensions: string[], cellSize: number[]): any
 export const getColHeadings = (colDimValues: JSONValue[], colSpan: number): any[] => {
     let colHeadings: any[] = [];
     _.forEach(colDimValues, (obj) => {
-        colHeadings.push(<td colSpan={colSpan} className={`colDimension`}>{obj}</td>);
+        colHeadings.push(<td key={`${obj}-col-heading`} colSpan={colSpan} className={`colDimension`}>{obj}</td>);
     });
 
     return colHeadings;
@@ -210,14 +219,16 @@ const getPlusMinusButton = (toggleMinimizedStatus: (dimensionValue: string, dime
     if (toggleMinimizedStatus) {
 
         if (showRows) {
-            return <button className={`plusMinusButton`}
+            return <button key={`${dimensionValue}-button`}
+                           className={`plusMinusButton`}
                              onClick = {(e) => {
                                  toggleMinimizedStatus(dimensionValue, dimensionMinimizedStatus) as any
                              }} >
                 {`-`}
             </button>
         } else {
-           return <button className={`plusMinusButton`}
+           return <button key={`${dimensionValue}-button`}
+                          className={`plusMinusButton`}
                              onClick = {(e) => {
                                  toggleMinimizedStatus(dimensionValue, dimensionMinimizedStatus) as any
                              }} >
@@ -265,15 +276,17 @@ const DisplayData = ({metric, loading, rows, cols, salesOrdersData, toggleMinimi
 
             if (showRows) {
                 if (rowDimensions.length === 1) {
-                    tds.push(<td className={`secondRowDimension`} rowSpan={_.size(filteredData[i] as JSONObject)}>
+                    tds.push(<td key={`${i}-row-dimension`}
+                                 className={`secondRowDimension`} rowSpan={_.size(filteredData[i] as JSONObject)}>
                         {button}
                         {i}
                     </td>);
                 } else {
-                    tds.push(<td className={`firstRowDimension`} rowSpan={_.size(filteredData[i] as JSONObject)}>
-                        {button}
-                        {i}
-                    </td>);
+                    tds.push(<td key={`${i}-row-dimension`}
+                                 className={`firstRowDimension`} rowSpan={_.size(filteredData[i] as JSONObject)}>
+                                {button}
+                                {i}
+                            </td>);
 
                     // TODO: Recursive function here to deal with more than 2 row dimensions
                     let isNewRow = false;
@@ -283,27 +296,27 @@ const DisplayData = ({metric, loading, rows, cols, salesOrdersData, toggleMinimi
                         if (isNewRow) {
                             tds = [];
                         }
-                        tds.push(<td className={`secondRowDimension`}>{ind2}</td>);
+                        tds.push(<td key={`${ind2}-row-dimension`} className={`secondRowDimension`}>{ind2}</td>);
 
                         _.forEach(colDimValues as ArrayLike<string>, (obj) => {
                             if (!dim2 || !dim2[obj]) {
-                                tds.push(<td>0</td>);
+                                tds.push(<td key={`${ind2}-${obj}-value`} className={`valueRow`}>0</td>);
                                 totals.push(0);
                             } else {
-                                tds.push(<td>{dim2[obj].toLocaleString()}</td>);
+                                tds.push(<td key={`${ind2}-${obj}-value`} className={`valueRow`}>{dim2[obj].toLocaleString()}</td>);
                                 totals.push(dim2[obj]);
                             }
                         });
 
                         dimTotals[ind2] = totals;
-                        trs.push(<tr>{tds}</tr>);
+                        trs.push(<tr key={`${ind2}-row`}>{tds}</tr>);
                         isNewRow = true;
                     });
                 }
             }
 
             // Add a SubTotal Row
-            trs.push(<tr>{displaySubTotal(rowDimensions,
+            trs.push(<tr key={`${i}-subtotal-row`}>{displaySubTotal(rowDimensions,
                 colDimensions,
                 colDimValues,
                 i, 0, metric as string, salesOrdersData, showRows, button)}</tr>)

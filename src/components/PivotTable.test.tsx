@@ -173,25 +173,73 @@ describe("DisplayData Table data", () => {
             {}));
 
         const displayData = pivotTable.find("DisplayData");
+        const valueRows = displayData.dive().find(".valueRow");
 
-        const rowHeading = displayData.dive().find(".rowHeading");
-        expect(rowHeading.text()).toEqual("PRODUCTS");
+        expect(valueRows.at(0).text()).toEqual("0");
+        expect(valueRows.at(1).text()).toEqual("0");
+        expect(valueRows.at(2).text()).toEqual("262");
+        expect(valueRows.at(3).text()).toEqual("0");
+        expect(valueRows.at(4).text()).toEqual("0");
+        expect(valueRows.at(5).text()).toEqual("732");
+        expect(valueRows.at(6).text()).toEqual("0");
+        expect(valueRows.at(7).text()).toEqual("958");
+        expect(valueRows.at(8).text()).toEqual("0");
+        expect(valueRows.at(9).text()).toEqual("15");
+        expect(valueRows.at(10).text()).toEqual("0");
+        expect(valueRows.at(11).text()).toEqual("0");
+        expect(valueRows.at(12).text()).toEqual("0");
+        expect(valueRows.at(13).text()).toEqual("22");
+        expect(valueRows.at(14).text()).toEqual("0");
     });
 });
 
-describe("DisplayData Table plus/minus buttons", () => {
-    it('renders table main rowHeadings', () => {
+describe("DisplayData Table sub total rows", () => {
+    it('renders subtotal values', () => {
         const pivotTable = enzyme.shallow(createPivotTable('sales',
             false,
             ['category', 'subCategory'],
             ['state'],
             salesData,
-            {}));
+            {"Furniture": "min",
+            "Office Supplies": "min"}));
 
         const displayData = pivotTable.find("DisplayData");
+        const subTotalRows = displayData.dive().find(".subTotal");
 
-        const rowHeading = displayData.dive().find(".rowHeading");
-        expect(rowHeading.text()).toEqual("PRODUCTS");
+        expect(subTotalRows.at(0).text()).toEqual("+Furniture Total");
+        expect(subTotalRows.at(1).text()).toEqual("+Office Supplies Total");
+
+        // Check subTotal values are displayed
+        const subTotalValueRows = displayData.dive().find(".subTotalValue");
+        expect(subTotalValueRows.at(0).text()).toEqual("0");
+        expect(subTotalValueRows.at(1).text()).toEqual("958");
+        expect(subTotalValueRows.at(2).text()).toEqual("994");
+        expect(subTotalValueRows.at(3).text()).toEqual("15");
+        expect(subTotalValueRows.at(4).text()).toEqual("22");
+        expect(subTotalValueRows.at(5).text()).toEqual("0");
+    });
+});
+
+describe("DisplayData Table grand total rows", () => {
+    it('renders grand total values', () => {
+        const pivotTable = enzyme.shallow(createPivotTable('sales',
+            false,
+            ['category', 'subCategory'],
+            ['state'],
+            salesData,
+            {"Furniture": "min",
+                "Office Supplies": "min"}));
+
+        const displayData = pivotTable.find("DisplayData");
+        const grandTotalRow = displayData.dive().find(".grandTotal");
+
+        expect(grandTotalRow.text()).toEqual("Grand Total");
+
+        // Check subTotal values are displayed
+        const grandTotalValueRows = displayData.dive().find(".grandTotalValue");
+        expect(grandTotalValueRows.at(0).text()).toEqual("15");
+        expect(grandTotalValueRows.at(1).text()).toEqual("980");
+        expect(grandTotalValueRows.at(2).text()).toEqual("994");
     });
 });
 
