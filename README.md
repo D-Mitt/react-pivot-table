@@ -24,12 +24,14 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 - Kept pivot table components within one file for ease of use.
 - Currently setup to handle 1-2 row dimensions, 1 column dimension, and one metric value.
 - Metric values can only be numbers.
+- Did not test Actions or Reducers.
 
 ## Next Steps...
 - Handle more than 2 types of row dimensions (currently able to retrieve data with more than 2 types of row dimensions, but cannot display).
 - Split out components comprising the pivot table into their respective classes.
 - Stickiness of columns should be responsive when columns change width.
 - Table Sizing for smaller datasets needs to be adjusted
+- Test Actions and Reducers.
 - Currently, data is hardcoded to return when the `Import Data` Button is clicked. commented-out code should be used when API endpoint is determined.
 - Split up Reducers.
 - Add UI Configuration Items:
