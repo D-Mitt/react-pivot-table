@@ -16,6 +16,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 - Redux is used for storing state.
 - Stateless components are used.
 - Jest and Enzyme are used to aid testing.
+- Lodash utility library used for collection/object manipulation.
 
 ## Assumptions and Simplifications
 - Kept pivot table components within one file for ease of use.
