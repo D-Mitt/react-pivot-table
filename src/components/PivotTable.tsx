@@ -97,14 +97,23 @@ export const sumMetric = (metric: string,
 
 // Sub Totals
 export const displaySubTotal = (rowDimensions: string[],
-                                 colDimensions: string[],
-                                 colDimValues: JSONValue[],
-                                 rowDimensionValue: string,
-                                 rowDimensionIndex: number,
-                                 metric: string,
-                                 salesOrdersData: JSONObject): any[] => {
+                                colDimensions: string[],
+                                colDimValues: JSONValue[],
+                                rowDimensionValue: string,
+                                rowDimensionIndex: number,
+                                metric: string,
+                                salesOrdersData: JSONObject,
+                                showRows: boolean,
+                                button: any): any[] => {
     let subTotals: any[] = [];
-    subTotals.push(<td className={`subTotal`} colSpan={rowDimensions.length}>{`${rowDimensionValue} Total`}</td>);
+    if (showRows) {
+        subTotals.push(<td className={`subTotal`} colSpan={rowDimensions.length}>{`${rowDimensionValue} Total`}</td>);
+    } else {
+        subTotals.push(<td className={`subTotal`} colSpan={rowDimensions.length}>
+            {button}
+            {`${rowDimensionValue} Total`}
+            </td>);
+    }
 
     _.forEach(colDimValues, (obj) => {
         let colDimSubTotal: number = _.chain(salesOrdersData.data as ArrayLike<JSONObject>)
@@ -115,6 +124,7 @@ export const displaySubTotal = (rowDimensions: string[],
             .sumBy(metric)
             .round()
             .value()
+
         subTotals.push(<td className={`subTotalValue`}>{colDimSubTotal.toLocaleString()}</td>);
     });
 
@@ -193,6 +203,30 @@ const getColDimensionValues = (data: ArrayLike<JSONObject>, colDimension: string
         .value();
 }
 
+const getPlusMinusButton = (toggleMinimizedStatus: (dimensionValue: string, dimensionMinimizedStatus: JSONObject) => void,
+                            showRows: boolean,
+                            dimensionValue: string,
+                            dimensionMinimizedStatus: JSONObject): any => {
+    if (toggleMinimizedStatus) {
+
+        if (showRows) {
+            return <button className={`plusMinusButton`}
+                             onClick = {(e) => {
+                                 toggleMinimizedStatus(dimensionValue, dimensionMinimizedStatus) as any
+                             }} >
+                {`-`}
+            </button>
+        } else {
+           return <button className={`plusMinusButton`}
+                             onClick = {(e) => {
+                                 toggleMinimizedStatus(dimensionValue, dimensionMinimizedStatus) as any
+                             }} >
+                {`+`}
+            </button>
+        }
+    }
+}
+
 const DisplayData = ({metric, loading, rows, cols, salesOrdersData, toggleMinimizedStatus, dimensionMinimizedStatus}: DisplayDataProps) => {
     let rowDimensions: string[] = rows as string[];
     let colDimensions: string[] = cols as string[];
@@ -219,60 +253,52 @@ const DisplayData = ({metric, loading, rows, cols, salesOrdersData, toggleMinimi
 
         _.forEach(filteredData as JSONObject, (dimension, i) => {
             tds = [];
+            let status: any = _.find(dimensionMinimizedStatus as JSONObject, (value, ind) => {
+                return i === ind;
+            });
+            let showRows: boolean = (!status || status as string === `max`);
+            let button: any = getPlusMinusButton(toggleMinimizedStatus as
+                (dimensionValue: string, dimensionMinimizedStatus: JSONObject) => void,
+                showRows,
+                i,
+                dimensionMinimizedStatus as JSONObject);
 
-            if (toggleMinimizedStatus) {
-                let button: any;
-                let status: any = _.find(dimensionMinimizedStatus as JSONObject, (value, ind) => {
-                    return i === ind;
-                });
-
-                if (!status || status as string === `max`) {
-                    button = <button className={`plusMinusButton`}
-                                     onClick = {(e) => {
-                                         toggleMinimizedStatus(i, dimensionMinimizedStatus as JSONObject) as any
-                                     }} >
-                                {`-`}
-                            </button>
-                } else {
-                    button = <button className={`plusMinusButton`}
-                                     onClick = {(e) => {
-                                         toggleMinimizedStatus(i, dimensionMinimizedStatus as JSONObject) as any
-                                     }} >
-                                {`+`}
-                            </button>
-                }
+            if (showRows) {
                 tds.push(<td className={`firstRowDimension`} rowSpan={_.size(filteredData[i] as JSONObject)}>
                     {button}
                     {i}
                 </td>);
+
+                let isNewRow = false;
+                let dimTotals: JSONObject = {};
+                _.forEach(dimension as JSONObject, (dim2, ind2) => {
+                    let totals: number[] = [];
+                    if (isNewRow) {
+                        tds = [];
+                    }
+                    tds.push(<td className={`secondRowDimension`}>{ind2}</td>);
+
+                    _.forEach(colDimValues as ArrayLike<string>, (obj) => {
+                        if (!dim2 || !dim2[obj]) {
+                            tds.push(<td>0</td>);
+                            totals.push(0);
+                        } else {
+                            tds.push(<td>{dim2[obj].toLocaleString()}</td>);
+                            totals.push(dim2[obj]);
+                        }
+                    });
+
+                    dimTotals[ind2] = totals;
+                    trs.push(<tr>{tds}</tr>);
+                    isNewRow = true;
+                });
             }
 
-            let isNewRow = false;
-            let dimTotals: JSONObject = {};
-            _.forEach(dimension as JSONObject, (dim2, ind2) => {
-                let totals: number[] = [];
-                if (isNewRow) {
-                    tds = [];
-                }
-                tds.push(<td className={`secondRowDimension`}>{ind2}</td>);
-
-                _.forEach(colDimValues as ArrayLike<string>, (obj) => {
-                    if (!dim2 || !dim2[obj]) {
-                        tds.push(<td>0</td>);
-                        totals.push(0);
-                    } else {
-                        tds.push(<td>{dim2[obj].toLocaleString()}</td>);
-                        totals.push(dim2[obj]);
-                    }
-                });
-
-                dimTotals[ind2] = totals;
-                trs.push(<tr>{tds}</tr>);
-                isNewRow = true;
-            });
-
             // Add a SubTotal Row
-            trs.push(<tr>{displaySubTotal(rowDimensions, colDimensions, colDimValues, i, 0, metric as string, salesOrdersData)}</tr>)
+            trs.push(<tr>{displaySubTotal(rowDimensions,
+                colDimensions,
+                colDimValues,
+                i, 0, metric as string, salesOrdersData, showRows, button)}</tr>)
         });
 
         return (
@@ -282,13 +308,13 @@ const DisplayData = ({metric, loading, rows, cols, salesOrdersData, toggleMinimi
                         <tr>
                             <th className={`rowHeading`} colSpan={_.size(rowDimensions)}>PRODUCTS</th>
                             <th className={`colHeading`} colSpan={Math.min(_.size(colDimValues), 8)}>{_.toUpper(colDimensions[0])}</th>
-                            <th style={{backgroundColor: `rgba(2, 40, 115, 1);`}}
+                            <th style={{backgroundColor: `rgba(2, 40, 115, 1)`}}
                                 colSpan={_.size(colDimValues) - Math.min(8, _.size(colDimValues))}>
                                 {}
                             </th>
                         </tr>
                         <tr>
-                            {getRowHeadings(rowDimensions, [115])}
+                            {getRowHeadings(rowDimensions, [145])}
                             {getColHeadings(colDimValues, 1)}
                         </tr>
                     </thead>

@@ -86,12 +86,17 @@ td {
   font-size: 11pt;
 }
 
+th {
+  width: 80px;
+}
+
 table {
   border: 1px solid black;
   border-spacing: 0px;
   display: block;
-  overflow-x: auto;
+  overflow-x: hidden;
   white-space: nowrap;
+  table-layout: fixed;
 }
 
 .rowHeading {
