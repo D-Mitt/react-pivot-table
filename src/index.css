@@ -86,17 +86,12 @@ td {
   font-size: 11pt;
 }
 
-th {
-  width: 80px;
-}
-
 table {
   border: 1px solid black;
   border-spacing: 0px;
   display: block;
-  overflow-x: hidden;
+  overflow-x: auto;
   white-space: nowrap;
-  table-layout: fixed;
 }
 
 .rowHeading {
@@ -137,7 +132,7 @@ table {
 .secondRowDimension {
   position:sticky;
   position: -webkit-sticky;
-  left:115px;
+  left:144;
   z-index:1;
   background-color: rgba(245, 245, 245, 1);
   padding: 6px;

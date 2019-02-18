@@ -314,7 +314,7 @@ const DisplayData = ({metric, loading, rows, cols, salesOrdersData, toggleMinimi
                             </th>
                         </tr>
                         <tr>
-                            {getRowHeadings(rowDimensions, [145])}
+                            {getRowHeadings(rowDimensions, [144])}
                             {getColHeadings(colDimValues, 1)}
                         </tr>
                     </thead>
