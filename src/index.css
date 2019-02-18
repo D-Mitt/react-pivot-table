@@ -132,7 +132,7 @@ table {
 .secondRowDimension {
   position:sticky;
   position: -webkit-sticky;
-  left:144;
+  left:144px;
   z-index:1;
   background-color: rgba(245, 245, 245, 1);
   padding: 6px;
