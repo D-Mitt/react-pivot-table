@@ -2,10 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="daeeb24e-ea3b-4544-b2aa-1cf5216dceb9" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/PivotTable.test.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/PivotTable.test.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/PivotTable.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/PivotTable.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -64,8 +61,8 @@
       <file leaf-file-name="PivotTable.test.tsx" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/components/PivotTable.test.tsx">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="212">
-              <caret line="174" column="59" selection-start-line="174" selection-start-column="59" selection-end-line="174" selection-end-column="59" />
+            <state relative-caret-position="47">
+              <caret line="163" column="3" lean-forward="true" selection-start-line="163" selection-start-column="3" selection-end-line="163" selection-end-column="3" />
               <folding>
                 <element signature="e#0#31#0" expanded="true" />
               </folding>
@@ -416,7 +413,7 @@
       <workItem from="1550189509800" duration="65680000" />
       <workItem from="1550345281122" duration="35872000" />
       <workItem from="1550420841436" duration="53801000" />
-      <workItem from="1550509630185" duration="3339000" />
+      <workItem from="1550509630185" duration="4632000" />
     </task>
     <servers />
   </component>
@@ -438,11 +435,10 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="158692000" />
+    <option name="totallyTimeSpent" value="159985000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1440" height="811" extended-state="6" />
-    <editor active="true" />
     <layout>
       <window_info anchor="right" id="Palette" order="7" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
@@ -825,8 +821,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/components/PivotTable.test.tsx">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="212">
-          <caret line="174" column="59" selection-start-line="174" selection-start-column="59" selection-end-line="174" selection-end-column="59" />
+        <state relative-caret-position="47">
+          <caret line="163" column="3" lean-forward="true" selection-start-line="163" selection-start-column="3" selection-end-line="163" selection-end-column="3" />
           <folding>
             <element signature="e#0#31#0" expanded="true" />
           </folding>
