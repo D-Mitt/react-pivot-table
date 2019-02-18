@@ -45,6 +45,37 @@ body {
   box-shadow: 0 1px rgba(1, 1, 1, 1);
 }
 
+.plusMinusButton {
+  font-size: 18px;
+  border-radius: 4px;
+  outline: none;
+  width: 20px;
+  height: 20px;
+  margin: 3px;
+  background: rgba(4, 102, 191, 1);
+  vertical-align: middle;
+  color: white;
+  text-align: center;
+  padding: 0px;
+  line-height: 10px;
+
+}
+
+.plusMinusButton:hover {
+  background-color: rgba(25, 125, 215, 1);
+  color: white;
+}
+
+.plusMinusButton:active {
+  background-color: rgba(0, 75, 165, 1);
+  color: white;
+}
+
+.buttonText
+{
+  margin: auto;
+}
+
 td {
   background-color: rgba(255, 255, 255, 1);
   color: rgba(82, 87, 90, 1);
@@ -131,7 +162,7 @@ table {
   color: white;
 }
 
-.firstColDimension {
+.colDimension {
   position:sticky;
   position: -webkit-sticky;
   top:0px;

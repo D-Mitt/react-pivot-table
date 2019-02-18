@@ -1,32 +1,38 @@
 import * as React from "react";
-import { JSONObject} from "../constants/constants";
+import {JSONObject, JSONValue} from "../constants/constants";
 import * as _ from 'lodash';
 import ArrayLike = jasmine.ArrayLike;
 
 export interface PivotTableProps {
-    title?: string;
+    metric?: string;
     loading?: boolean;
     rowDimensions?: string[];
-    colDimenions?: string[];
-    metric?: string;
+    colDimensions?: string[];
     salesOrdersData?: JSONObject;
+    dimensionMinimizedStatus?: JSONObject;
     importSalesOrders?: () => void;
+    toggleMinimizedStatus?: (dimensionValue: string, dimensionMinimizedStatus: JSONObject) => void;
 };
 
 export interface TitleHeadingProps {
-    title?: string;
+    metric?: string;
     importSalesOrders?: () => void;
 };
 
 export interface DisplayDataProps {
+    metric?: string;
     loading?: boolean;
+    rows?: string[];
+    cols?: string[];
     salesOrdersData?: JSONObject;
+    toggleMinimizedStatus?: (dimensionValue: string, dimensionMinimizedStatus: JSONObject) => void;
+    dimensionMinimizedStatus?: JSONObject;
 };
 
-const TitleHeading = ({title, importSalesOrders}: TitleHeadingProps) => {
+const TitleHeading = ({metric, importSalesOrders}: TitleHeadingProps) => {
     return (<div className={`titleHeading`}>
                 <div className={`title`}>
-                    {title}
+                    {`${_.toUpper(`SUM ${metric}`)}`}
                 </div>
             <button className={`importButton`} onClick = {importSalesOrders} > Import Data </button>
             </div>
@@ -40,16 +46,16 @@ const TitleHeading = ({title, importSalesOrders}: TitleHeadingProps) => {
 export const buildDataSet = (dimensionObj: JSONObject,
                              previousDimension: number,
                              combinedDimensions: string[],
-                             salesOrdersData: JSONObject,
+                             data: ArrayLike<JSONObject>,
                              metric: string): any => {
 
     let newDimensionNumber = previousDimension + 1;
 
     if (newDimensionNumber === combinedDimensions.length) {
 
-        return sumMetric(metric, salesOrdersData, combinedDimensions, dimensionObj);
+        return sumMetric(metric, data, combinedDimensions, dimensionObj);
     } else {
-        return _.chain(salesOrdersData.data as ArrayLike<JSONObject>)
+        return _.chain(data)
             .filter(function(o) {
                 return o[combinedDimensions[previousDimension]] === dimensionObj[combinedDimensions[previousDimension]];
             })
@@ -59,7 +65,7 @@ export const buildDataSet = (dimensionObj: JSONObject,
             .mapValues((obj) => {
 
                 return buildDataSet(obj, newDimensionNumber, combinedDimensions,
-                    salesOrdersData, metric);
+                    data, metric);
             })
             .value();
     }
@@ -69,10 +75,10 @@ export const buildDataSet = (dimensionObj: JSONObject,
     Look to see if an entry has all requested dimensions and then Sum them and round.
  */
 export const sumMetric = (metric: string,
-                          salesOrdersData: JSONObject,
+                          data: ArrayLike<JSONObject>,
                           combinedDimensions: string[],
                           dimensionObj: JSONObject): any => {
-    let sum:number = _.chain(salesOrdersData.data as ArrayLike<JSONObject>)
+    let sum:number = _.chain(data)
         .filter((o) => {
             let parametersMatch = true;
             _.forEach(combinedDimensions, (dim) => {
@@ -89,11 +95,109 @@ export const sumMetric = (metric: string,
     return sum;
 };
 
-// const numberWithCommas = (x:number):string => {
-//     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-// }
+// Sub Totals
+export const displaySubTotal = (rowDimensions: string[],
+                                 colDimensions: string[],
+                                 colDimValues: JSONValue[],
+                                 rowDimensionValue: string,
+                                 rowDimensionIndex: number,
+                                 metric: string,
+                                 salesOrdersData: JSONObject): any[] => {
+    let subTotals: any[] = [];
+    subTotals.push(<td className={`subTotal`} colSpan={rowDimensions.length}>{`${rowDimensionValue} Total`}</td>);
 
-const DisplayData = ({loading, salesOrdersData}: DisplayDataProps) => {
+    _.forEach(colDimValues, (obj) => {
+        let colDimSubTotal: number = _.chain(salesOrdersData.data as ArrayLike<JSONObject>)
+            .filter((o) => {
+
+                return (obj === o[colDimensions[0]] && rowDimensionValue === o[rowDimensions[rowDimensionIndex]]);
+            })
+            .sumBy(metric)
+            .round()
+            .value()
+        subTotals.push(<td className={`subTotalValue`}>{colDimSubTotal.toLocaleString()}</td>);
+    });
+
+    return subTotals;
+}
+
+// Grand Totals
+export const displayGrandTotals = (rowDimensions: string[],
+                                   colDimensions: string[],
+                                   colDimValues: JSONValue[],
+                                   metric: string,
+                                   salesOrdersData: JSONObject): any[] => {
+    let grandTotals: any[] = [];
+    grandTotals.push(<td className={`grandTotal`} colSpan={rowDimensions.length}>{`Grand Total`}</td>);
+
+    _.forEach(colDimValues, (obj) => {
+        let colDimGrandTotal: number = _.chain(salesOrdersData.data as ArrayLike<JSONObject>)
+            .filter((o) => {
+                return obj === o[colDimensions[0]];
+            })
+            .sumBy(metric)
+            .round()
+            .value()
+        grandTotals.push(<td className={`subTotalValue`}>{colDimGrandTotal.toLocaleString()}</td>);
+    });
+
+    return grandTotals;
+}
+
+export const getRowHeadings = (rowDimensions: string[], cellSize: number[]): any[] => {
+    let rowHeadings: any[] = [];
+    let leftValue:number = 0;
+    let count: number = 0;
+
+    _.forEach(rowDimensions, (obj) => {
+        // If last row heading, add shadow border
+        if (rowDimensions.indexOf(obj) + 1 ===_.size(rowDimensions)) {
+            rowHeadings.push(<td style={{left: `${leftValue}px`}} className={`finalStickyFirstColDimension`}>{_.capitalize(obj)}</td>);
+        } else {
+            rowHeadings.push(<td style={{left: `${leftValue}px`}} className={`leftStickyFirstColDimension`}>{_.capitalize(obj)}</td>);
+            leftValue += cellSize[count];
+        }
+        count++;
+    });
+
+    return rowHeadings;
+}
+
+export const getColHeadings = (colDimValues: JSONValue[], colSpan: number): any[] => {
+    let colHeadings: any[] = [];
+    _.forEach(colDimValues, (obj) => {
+        colHeadings.push(<td colSpan={colSpan} className={`colDimension`}>{obj}</td>);
+    });
+
+    return colHeadings;
+}
+
+const getFilteredData = (data: ArrayLike<JSONObject>, combinedDimensions: string[], metric: string): JSONObject => {
+    return _.chain(data)
+        .sortBy(combinedDimensions[0])
+        .uniqBy(combinedDimensions[0])
+        .keyBy(combinedDimensions[0])
+        .mapValues((obj) => {
+
+            return buildDataSet(obj, 0, combinedDimensions,
+                data, metric as string);
+        })
+        .value();
+}
+
+const getColDimensionValues = (data: ArrayLike<JSONObject>, colDimension: string): JSONValue[] => {
+    return _.chain(data)
+        .sortBy(colDimension)
+        .uniqBy(colDimension)
+        .map(colDimension)
+        .value();
+}
+
+const DisplayData = ({metric, loading, rows, cols, salesOrdersData, toggleMinimizedStatus, dimensionMinimizedStatus}: DisplayDataProps) => {
+    let rowDimensions: string[] = rows as string[];
+    let colDimensions: string[] = cols as string[];
+    let combinedDimensions = rowDimensions.concat(colDimensions);
+
     if (loading) {
         return (
             <div className={`loading`}>
@@ -102,45 +206,58 @@ const DisplayData = ({loading, salesOrdersData}: DisplayDataProps) => {
         );
     } else if (salesOrdersData && salesOrdersData.data) {
 
-        let rowDimensions = ['category', 'subCategory'];
-        let colDimensions = ['state'];
-        let metric = 'sales';
-        let combinedDimensions = rowDimensions.concat(colDimensions);
-
         // filter data based on row and column dimensions specified in the code
-        let filteredData = _.chain(salesOrdersData.data as ArrayLike<JSONObject>)
-            .sortBy(combinedDimensions[0])
-            .uniqBy(combinedDimensions[0])
-            .keyBy(combinedDimensions[0])
-            .mapValues((obj) => {
+        let filteredData: JSONObject = getFilteredData(salesOrdersData.data as ArrayLike<JSONObject>,
+            combinedDimensions,
+            metric as string);
 
-                return buildDataSet(obj, 0, combinedDimensions,
-                    salesOrdersData, metric);
-            })
-            .value();
+        let colDimValues = getColDimensionValues(salesOrdersData.data as ArrayLike<JSONObject>,
+            colDimensions[0]);
 
-        let colDim = _.chain(salesOrdersData.data as ArrayLike<JSONObject>)
-            .sortBy(colDimensions[0])
-            .uniqBy(colDimensions[0])
-            .map(colDimensions[0])
-            .value();
         let tds: any[] = [];
         let trs: any[] = [];
 
-        _.forEach(filteredData, (dimension, i) => {
+        _.forEach(filteredData as JSONObject, (dimension, i) => {
             tds = [];
-            tds.push(<td className={`firstRowDimension`} rowSpan={_.size(filteredData[i])}>{i}</td>);
+
+            if (toggleMinimizedStatus) {
+                let button: any;
+                let status: any = _.find(dimensionMinimizedStatus as JSONObject, (value, ind) => {
+                    return i === ind;
+                });
+
+                if (!status || status as string === `max`) {
+                    button = <button className={`plusMinusButton`}
+                                     onClick = {(e) => {
+                                         toggleMinimizedStatus(i, dimensionMinimizedStatus as JSONObject) as any
+                                     }} >
+                                {`-`}
+                            </button>
+                } else {
+                    button = <button className={`plusMinusButton`}
+                                     onClick = {(e) => {
+                                         toggleMinimizedStatus(i, dimensionMinimizedStatus as JSONObject) as any
+                                     }} >
+                                {`+`}
+                            </button>
+                }
+                tds.push(<td className={`firstRowDimension`} rowSpan={_.size(filteredData[i] as JSONObject)}>
+                    {button}
+                    {i}
+                </td>);
+            }
+
             let isNewRow = false;
             let dimTotals: JSONObject = {};
-            _.forEach(dimension, (dim2, ind2) => {
+            _.forEach(dimension as JSONObject, (dim2, ind2) => {
                 let totals: number[] = [];
                 if (isNewRow) {
                     tds = [];
                 }
                 tds.push(<td className={`secondRowDimension`}>{ind2}</td>);
 
-                _.forEach(colDim as ArrayLike<string>, (obj) => {
-                    if (!dim2[obj]) {
+                _.forEach(colDimValues as ArrayLike<string>, (obj) => {
+                    if (!dim2 || !dim2[obj]) {
                         tds.push(<td>0</td>);
                         totals.push(0);
                     } else {
@@ -153,53 +270,9 @@ const DisplayData = ({loading, salesOrdersData}: DisplayDataProps) => {
                 trs.push(<tr>{tds}</tr>);
                 isNewRow = true;
             });
-            let subTotal: any[] = [];
-            subTotal.push(<td className={`subTotal`} colSpan={rowDimensions.length}>{`${i} Total`}</td>);
 
-            for(let j = 0; j < colDim.length; j++) {
-                let colDimTotal: number = 0;
-                _.forEach(dimTotals, (array) => {
-                    if (array) {
-                        colDimTotal += array[j];
-                    }
-                })
-                subTotal.push(<td className={`subTotalValue`}>{colDimTotal.toLocaleString()}</td>);
-            }
-
-            trs.push(<tr>{subTotal}</tr>)
-        });
-
-        let colHeadings: any[] = [];
-        let rowHeadings: any[] = [];
-        let leftValue:number = 0;
-
-        _.forEach(rowDimensions, (obj) => {
-            // If last row heading, add shadow border
-            if (rowDimensions.indexOf(obj) + 1 ===_.size(rowDimensions)) {
-                rowHeadings.push(<td style={{left: `${leftValue}px`}} className={`finalStickyFirstColDimension`}>{_.capitalize(obj)}</td>);
-            } else {
-                rowHeadings.push(<td style={{left: `${leftValue}px`}} className={`leftStickyFirstColDimension`}>{_.capitalize(obj)}</td>);
-                leftValue += 115;
-            }
-        });
-
-        _.forEach(colDim as ArrayLike<string>, (obj) => {
-            colHeadings.push(<td className={`firstColDimension`}>{obj}</td>);
-        });
-
-        // Grand Totals
-        let grandTotals: any[] = [];
-        grandTotals.push(<td className={`grandTotal`} colSpan={rowDimensions.length}>{`Grand Total`}</td>);
-
-        _.forEach(colDim, (obj) => {
-            let colDimGrandTotal: number = _.chain(salesOrdersData.data as ArrayLike<JSONObject>)
-                .filter((o) => {
-                    return obj === o[colDimensions[0]];
-                })
-                .sumBy(metric)
-                .round()
-                .value()
-            grandTotals.push(<td className={`grandTotalValue`}>{colDimGrandTotal.toLocaleString()}</td>);
+            // Add a SubTotal Row
+            trs.push(<tr>{displaySubTotal(rowDimensions, colDimensions, colDimValues, i, 0, metric as string, salesOrdersData)}</tr>)
         });
 
         return (
@@ -208,18 +281,21 @@ const DisplayData = ({loading, salesOrdersData}: DisplayDataProps) => {
                     <thead>
                         <tr>
                             <th className={`rowHeading`} colSpan={_.size(rowDimensions)}>PRODUCTS</th>
-                            <th className={`colHeading`} colSpan={Math.min(_.size(colDim), 8)}>{_.toUpper(colDimensions[0])}</th>
-                            <th style={{backgroundColor: `rgba(2, 40, 115, 1);`}} colSpan={_.size(colDim) - 8}>{}</th>
+                            <th className={`colHeading`} colSpan={Math.min(_.size(colDimValues), 8)}>{_.toUpper(colDimensions[0])}</th>
+                            <th style={{backgroundColor: `rgba(2, 40, 115, 1);`}}
+                                colSpan={_.size(colDimValues) - Math.min(8, _.size(colDimValues))}>
+                                {}
+                            </th>
                         </tr>
                         <tr>
-                            {rowHeadings}
-                            {colHeadings}
+                            {getRowHeadings(rowDimensions, [115])}
+                            {getColHeadings(colDimValues, 1)}
                         </tr>
                     </thead>
                     <tbody>
                         {trs}
                         <tr>
-                            {grandTotals}
+                            {displayGrandTotals(rowDimensions, colDimensions, colDimValues, metric as string, salesOrdersData)}
                         </tr>
                     </tbody>
 
@@ -230,12 +306,25 @@ const DisplayData = ({loading, salesOrdersData}: DisplayDataProps) => {
     return(<div></div>);
 };
 
-const PivotTable = ({title, loading, salesOrdersData, importSalesOrders}: PivotTableProps) => {
+const PivotTable = ({metric,
+                        loading,
+                        rowDimensions,
+                        colDimensions,
+                        salesOrdersData,
+                        dimensionMinimizedStatus,
+                        importSalesOrders,
+                        toggleMinimizedStatus}: PivotTableProps) => {
 
     return (
         <div className="PivotTable">
-            <TitleHeading title={title} importSalesOrders={importSalesOrders} />
-            <DisplayData loading={loading} salesOrdersData={salesOrdersData} />
+            <TitleHeading metric={metric} importSalesOrders={importSalesOrders} />
+            <DisplayData metric={metric}
+                         loading={loading}
+                         rows={rowDimensions}
+                         cols={colDimensions}
+                         salesOrdersData={salesOrdersData}
+                         toggleMinimizedStatus={toggleMinimizedStatus}
+                         dimensionMinimizedStatus={dimensionMinimizedStatus}/>
         </div>
     );
 };

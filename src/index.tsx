@@ -8,9 +8,12 @@ import registerServiceWorker from './registerServiceWorker';
 import configureStore from './store/configureStore';
 
 const store = configureStore({
-    title: 'SUM SALES',
+    metric: 'sales',
     loading: false,
-    salesOrdersData: {}
+    rowDimensions: ['category', 'subCategory'],
+    colDimensions: ['state'],
+    salesOrdersData: {},
+    dimensionMinimizedStatus: {}
 });
 
 ReactDOM.render(

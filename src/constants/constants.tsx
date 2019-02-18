@@ -1,9 +1,14 @@
 export const GET_SALES_ORDERS = 'GET_SALES_ORDERS';
 export type GET_SALES_ORDERS = typeof GET_SALES_ORDERS;
 
-
 export const RECEIVED_SALES_ORDERS = 'RECEIVED_SALES_ORDERS';
 export type RECEIVED_SALES_ORDERS = typeof RECEIVED_SALES_ORDERS;
+
+export const TOGGLE_MINIMIZED_START = 'TOGGLE_MINIMIZED_START';
+export type TOGGLE_MINIMIZED_START = typeof TOGGLE_MINIMIZED_START;
+
+export const TOGGLE_MINIMIZED_END = 'TOGGLE_MINIMIZED_END';
+export type TOGGLE_MINIMIZED_END = typeof TOGGLE_MINIMIZED_END;
 
 export type JSONPrimitive = string | number | boolean | null;
 export type JSONValue = JSONPrimitive | JSONObject | JSONArray;

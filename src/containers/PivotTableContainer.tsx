@@ -1,20 +1,28 @@
 import PivotTable from '../components/PivotTable';
 import * as actions from '../actions/PivotTableActions';
-import { StoreState } from '../store/Store';
+import { SalesDataState } from '../store/Store';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
+import {JSONObject} from "../constants/constants";
 
-export function mapStateToProps({ title, loading, salesOrdersData}: StoreState) {
+export function mapStateToProps({ metric, loading, rowDimensions, colDimensions,
+                                    salesOrdersData, dimensionMinimizedStatus}: SalesDataState) {
     return {
-        title,
+        metric,
         loading,
-        salesOrdersData
+        rowDimensions,
+        colDimensions,
+        salesOrdersData,
+        dimensionMinimizedStatus
     }
 }
 
 export function mapDispatchToProps(dispatch: Dispatch<any>) {
     return {
-        importSalesOrders: () => dispatch(actions.fetchSalesOrders())
+        importSalesOrders: () => dispatch(actions.fetchSalesOrders()),
+        toggleMinimizedStatus: (dimensionValue: string,
+                                dimensionMinimizedStatus: JSONObject) =>
+            dispatch(actions.toggleMinimizedStatus(dimensionValue, dimensionMinimizedStatus))
     }
 }
 
